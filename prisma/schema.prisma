@@ -1,0 +1,67 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String  @id @default(cuid()) @map("_id") 
+  clerkId             String  @unique
+  email               String  @unique
+  userName            String?
+  firstName           String
+  lastName            String
+  imageUrl            String
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  events              Event[]
+  orders              Order[]
+}
+
+model Event {
+  id                  String  @id @default(cuid()) @map("_id") 
+  title               String
+  description         String?
+  imageUrl            String
+  startDateTime       DateTime
+  endDateTime         DateTime
+  location            String?
+  price               String?
+  isFree              Boolean @default(false)
+  url                 String
+
+  orders              Order[]
+
+  host                User @relation(fields: [id], references: [id], onDelete: Cascade)
+  category            Category? @relation(fields: [id], references: [id])
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Category {
+  id                  String  @id @default(cuid()) @map("_id") 
+  name                String  @unique
+
+  events              Event[]
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Order {
+  id                  String  @id @default(cuid()) @map("_id") 
+  stripeId            String @unique  
+  totalAmount         String
+  buyer               User  @relation(fields: [id], references: [id], onDelete: Cascade)
+  event               Event @relation(fields: [id], references: [id]) 
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
