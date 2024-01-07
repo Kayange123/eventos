@@ -129,8 +129,7 @@ export const getEventById = async (id: string) => {
 
     return JSON.parse(JSON.stringify(event));
   } catch (error) {
-    console.log(error);
-    //throw new Error("Internal server error");
+    throw new Error("Internal server error");
   }
 };
 
@@ -225,7 +224,7 @@ export async function getRelatedEventsByCategory({
       where: conditions,
       skip: skipAmount,
       take: limit,
-      include: { category: true },
+      include: { category: true, user: true },
       orderBy: { createdAt: "desc" },
     });
 
