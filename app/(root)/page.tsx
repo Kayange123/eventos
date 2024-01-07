@@ -1,9 +1,18 @@
+import { getAllEvents } from "@/actions/event.actions";
+import Collection from "@/components/shared/Collection";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const events = await getAllEvents({
+    query: "",
+    category: "",
+    page: 1,
+    limit: 6,
+  });
+
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-contain py-4">
@@ -16,10 +25,10 @@ export default function Home() {
               {`Let's build the community and learn from 10,000+ mentors around the world. 
               Enventos - Home of events`}
             </p>
-            <Button asChild className="button w-full sm:w-fit">
+            <Button asChild className="button w-full sm:w-fit group transition">
               <Link href="#events">
-                Exlore more
-                <ArrowDown className="ml-2 h-4 w-4" />
+                Explore more
+                <ArrowRight className="ml-3 h-5 w-5 group-hover:rotate-90 duration-200 transition-transform group-active:rotate-90" />
               </Link>
             </Button>
           </div>
@@ -40,6 +49,15 @@ export default function Home() {
         <div className="flex w-full flex-col gap-5 md:flex-row">
           Search CategoryFilter
         </div>
+        <Collection
+          data={events?.data}
+          emptyTitle="No events Found"
+          emptyStateSubtext="Try again later"
+          collectionType="All_Events"
+          limit={6}
+          page={1}
+          totalPages={2}
+        />
       </section>
     </>
   );
