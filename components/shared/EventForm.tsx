@@ -26,7 +26,7 @@ import { Checkbox } from "../ui/checkbox";
 import { useUploadThing } from "@/lib/uploadThing";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { createEvent } from "@/actions/event.actions";
+import { createEvent, updateEvent } from "@/actions/event.actions";
 import { Event } from "@prisma/client";
 
 interface EventFormProps {
@@ -37,18 +37,18 @@ interface EventFormProps {
 
 const EventForm = ({ userId, type, event }: EventFormProps) => {
   const [files, setFiles] = useState<File[]>([]);
-  const formEvent = {
-    title: event?.title || "",
-    description: event?.description || "",
-    location: event?.location || "",
-    url: event?.url || "",
-    imageUrl: event?.imageUrl || "",
-    price: event?.price || "",
-    isFree: event?.isFree || false,
-    categoryId: event?.categoryId || "",
-    startDateTime: new Date() || new Date(),
-    endDateTime: new Date() || new Date(),
-  };
+  const formEvent =
+    event && type === "Update"
+      ? {
+          ...event,
+          startDateTime: new Date(event.startDateTime),
+          endDateTime: new Date(event.endDateTime),
+          description: event.description || "",
+          location: event.location || "",
+          price: event.price || "",
+          url: event.url || "",
+        }
+      : eventDefaultValues;
   const router = useRouter();
   const { startUpload } = useUploadThing("imageUploader");
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -81,6 +81,26 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
         toast.error("Failed to create form");
       }
     }
+    if (type === "Update") {
+      if (!event?.id) {
+        router.back();
+      }
+      try {
+        const updatedEvent = await updateEvent({
+          event: { ...values, imageUrl: uploadedImageUrl },
+          path: `/events/${event?.id}`,
+          userId,
+          eventId: event?.id!,
+        });
+        if (updatedEvent) {
+          toast.success("Event created successfully");
+          form.reset();
+          router.push(`/events/${updatedEvent.id}`);
+        }
+      } catch (error) {
+        toast.error("Failed to create form");
+      }
+    }
   };
   return (
     <Form {...form}>
@@ -88,16 +108,17 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-5"
       >
-        <div className="flex flex-col gap-5 md:flex-row">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem>
-                <FormControl>
+              <FormItem className="w-full">
+                <FormControl className="w-full">
                   <Input
-                    className="input-field"
+                    className="input-field w-fulls"
                     placeholder="Enter an event title"
+                    disabled={form.formState.isSubmitting}
                     {...field}
                   />
                 </FormControl>
@@ -109,8 +130,8 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
             control={form.control}
             name="categoryId"
             render={({ field }) => (
-              <FormItem>
-                <FormControl>
+              <FormItem className="w-full">
+                <FormControl className="w-full">
                   <Dropdown
                     onChangeHandler={field.onChange}
                     value={field.value}
@@ -131,6 +152,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                   <Textarea
                     className="textarea rounded-xl"
                     placeholder="Provide a description for your event"
+                    disabled={form.formState.isSubmitting}
                     {...field}
                   />
                 </FormControl>
@@ -173,6 +195,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                     <Input
                       className="input-field"
                       placeholder="Event location or online"
+                      disabled={form.formState.isSubmitting}
                       {...field}
                     />
                   </div>
@@ -199,6 +222,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                       type="url"
                       placeholder="https://"
                       {...field}
+                      disabled={form.formState.isSubmitting}
                     />
                   </div>
                 </FormControl>
@@ -233,6 +257,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                       timeInputLabel="Time:"
                       dateFormat="MMM dd, yyyy h:mm aa"
                       wrapperClassName="datePicker"
+                      disabled={form.formState.isSubmitting}
                     />
                   </div>
                 </FormControl>
@@ -265,6 +290,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                       timeInputLabel="Time:"
                       dateFormat="MMM dd, yyyy h:mm aa"
                       wrapperClassName="datePicker"
+                      disabled={form.formState.isSubmitting}
                     />
                   </div>
                 </FormControl>
@@ -293,6 +319,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                       placeholder="Price"
                       {...field}
                       className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      disabled={form.formState.isSubmitting}
                     />
                     <FormField
                       control={form.control}
@@ -308,6 +335,7 @@ const EventForm = ({ userId, type, event }: EventFormProps) => {
                                 Free Ticket
                               </Label>
                               <Checkbox
+                                disabled={form.formState.isSubmitting}
                                 onCheckedChange={field.onChange}
                                 checked={field.value}
                                 id="isFree"

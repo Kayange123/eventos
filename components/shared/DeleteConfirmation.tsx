@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { deleteEvent } from "@/actions/event.actions";
+import { toast } from "sonner";
 
 interface DeleteConfirmationProps {
   eventId: string;
@@ -23,6 +25,14 @@ const DeleteConfirmation = ({ eventId }: DeleteConfirmationProps) => {
   const pathname = usePathname();
   let [isPending, startTransition] = useTransition();
 
+  const handleDelete = async () => {
+    try {
+      await deleteEvent({ eventId, path: pathname });
+      toast.success("Event deleted successfully");
+    } catch (error: any) {
+      toast.error("Something went wrong");
+    }
+  };
   return (
     <AlertDialog>
       <AlertDialogTrigger>
@@ -45,7 +55,7 @@ const DeleteConfirmation = ({ eventId }: DeleteConfirmationProps) => {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-          <AlertDialogAction onClick={() => {}}>
+          <AlertDialogAction onClick={() => startTransition(handleDelete)}>
             {isPending ? "Deleting..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>

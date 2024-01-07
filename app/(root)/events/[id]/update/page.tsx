@@ -8,7 +8,7 @@ const UpdateEventPage = async ({ params }: { params: { id: string } }) => {
   const userId = sessionClaims?.userId as string;
 
   const event = await getEventById(params.id);
-  //console.log(event);
+
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">

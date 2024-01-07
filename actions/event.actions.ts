@@ -17,6 +17,12 @@ export type CreateEventProps = {
   event: Omit<Event, "id" | "createdAt" | "updatedAt" | "hostId">;
   path: string;
 };
+export type UpdateEventProps = {
+  userId: string;
+  event: Omit<Event, "id" | "createdAt" | "updatedAt" | "hostId">;
+  path: string;
+  eventId: string;
+};
 
 export const createEvent = async ({
   event,
@@ -57,6 +63,46 @@ export const createEvent = async ({
   return newEvent;
 };
 
+export const updateEvent = async ({
+  event,
+  userId,
+  path,
+  eventId,
+}: UpdateEventProps) => {
+  const { userId: clerkUserId } = auth();
+
+  if (!clerkUserId) {
+    throw new Error("Unauthorized");
+  }
+  let updatedEvent;
+  try {
+    updatedEvent = await db.event.update({
+      data: {
+        title: event.title,
+        description: event.description,
+        imageUrl: event.imageUrl,
+        startDateTime: event.startDateTime,
+        endDateTime: event.endDateTime,
+        isFree: event.isFree,
+        location: event.location,
+        price: event.price,
+        url: event.url,
+        categoryId: event.categoryId,
+      },
+      where: {
+        id: eventId,
+        hostId: userId,
+      },
+    });
+
+    revalidatePath(path);
+  } catch (error) {
+    console.log(error);
+    throw new Error("Internal server error");
+  }
+  return updatedEvent;
+};
+
 export const getEventWithUserById = async (id: string) => {
   try {
     const event = await db.event.findUnique({
@@ -70,8 +116,7 @@ export const getEventWithUserById = async (id: string) => {
 
     return JSON.parse(JSON.stringify(event));
   } catch (error) {
-    console.log(error);
-    //throw new Error("Internal server error");
+    throw new Error("Internal server error");
   }
 };
 
@@ -96,19 +141,14 @@ export const getAllEvents = async ({
   category,
 }: GetAllEventsParams) => {
   const skipAmount = (Number(page) - 1) * limit;
-  const titleCondition = query
-    ? { title: { contains: query, mode: "insensitive" } }
-    : {};
-
-  const categoryCondition = category
-    ? { category: { some: { name: category } } }
-    : {};
-
-  const conditions = {
-    AND: [titleCondition, categoryCondition],
-  };
 
   const events = await db.event.findMany({
+    where: {
+      AND: [
+        query ? { title: { contains: query, mode: "insensitive" } } : {},
+        category ? { category: { name: category } } : {},
+      ],
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
     include: {
@@ -136,7 +176,7 @@ export const deleteEvent = async ({
   try {
     const { sessionClaims } = auth();
     const userId = sessionClaims?.userId as string;
-    if (!userId || eventId) {
+    if (!userId || !eventId) {
       throw new Error("No ID provided");
     }
     const event = await db.event.delete({
@@ -152,6 +192,52 @@ export const deleteEvent = async ({
     }
     revalidatePath(path);
   } catch (error) {
+    console.log(error);
     throw new Error("Internal server error");
   }
 };
+
+export async function getRelatedEventsByCategory({
+  categoryId,
+  eventId,
+  limit = 3,
+  page = 1,
+}: {
+  categoryId: string;
+  eventId: string;
+  limit?: number;
+  page: number | string;
+}) {
+  try {
+    const skipAmount = (Number(page) - 1) * limit;
+    const conditions = {
+      AND: [
+        {
+          categoryId,
+        },
+        {
+          id: { not: eventId },
+        },
+      ],
+    };
+
+    const eventsQuery = await db.event.findMany({
+      where: conditions,
+      skip: skipAmount,
+      take: limit,
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const eventsCount = await db.event.count({
+      where: conditions,
+    });
+
+    return {
+      data: JSON.parse(JSON.stringify(eventsQuery)),
+      totalPages: Math.ceil(eventsCount / limit),
+    };
+  } catch (error) {
+    throw new Error("Internal server error");
+  }
+}
