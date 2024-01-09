@@ -47,22 +47,25 @@ model Event {
 }
 
 model Category {
-  id   String @id @default(cuid()) @map("_id")
-  name String @unique
+  id            String @id @default(cuid()) @map("_id")
+  name          String @unique
 
-  events Event[]
+  events        Event[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Order {
   id          String @id @default(cuid()) @map("_id")
   stripeId    String @unique
   totalAmount String
-  buyer       User   @relation(fields: [id], references: [id], onDelete: Cascade)
-  event       Event  @relation(fields: [id], references: [id])
+  buyerId     String
+  eventId     String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  buyer       User   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  event       Event  @relation(fields: [eventId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
