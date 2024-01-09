@@ -1,15 +1,24 @@
 import { getEventsByUser } from "@/actions/event.actions";
+import { getOrdersByUser } from "@/actions/order.actions";
 import Collection from "@/components/shared/Collection";
 import { Button } from "@/components/ui/button";
+import { OrderWithUserAndEvent, SearchParamProps } from "@/lib/types";
 import { auth } from "@clerk/nextjs";
 import Link from "next/link";
 import React from "react";
 
-const ProfilePage = async () => {
+const ProfilePage = async ({ searchParams }: SearchParamProps) => {
   const { sessionClaims } = auth();
   const userId = sessionClaims?.userId as string;
 
-  const organizedEvents = await getEventsByUser({ userId, page: 1 });
+  const ordersPage = Number(searchParams?.ordersPage) || 1;
+  const eventsPage = Number(searchParams?.eventsPage) || 1;
+  const orders = await getOrdersByUser({ userId, page: ordersPage });
+  const organizedEvents = await getEventsByUser({ userId, page: eventsPage });
+
+  const orderedEvents =
+    orders?.data?.map((order: OrderWithUserAndEvent) => order?.event) || [];
+
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
@@ -23,14 +32,14 @@ const ProfilePage = async () => {
 
       <section className="wrapper my-8">
         <Collection
-          data={[]}
+          data={orderedEvents}
           emptyTitle="No events Tickets purchased"
           emptyStateSubtext="Worry not - Plenty of events to explore!"
           collectionType="My_Tickets"
           urlParamName="ordersPage"
           limit={6}
-          page={1}
-          totalPages={2}
+          page={ordersPage}
+          totalPages={orders?.totalPages}
         />
       </section>
 
@@ -45,14 +54,14 @@ const ProfilePage = async () => {
 
       <section className="wrapper my-8">
         <Collection
-          data={organizedEvents}
+          data={organizedEvents?.data}
           emptyTitle="No events have been recorded"
           emptyStateSubtext="Create yours today"
           collectionType="Events_Organized"
           urlParamName="ordersPage"
           limit={6}
-          page={1}
-          totalPages={2}
+          page={eventsPage}
+          totalPages={organizedEvents?.totalPages}
         />
       </section>
     </>

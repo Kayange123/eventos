@@ -243,18 +243,32 @@ export async function getRelatedEventsByCategory({
 export async function getEventsByUser({
   userId,
   page = 1,
+  limit = 4,
 }: {
   userId: string;
   page: number | string;
+  limit?: number;
 }) {
   let events;
+  let totalPages;
+
+  const skipAmount = (Number(page) - 1) * limit;
   try {
     events = await db.event.findMany({
       where: { hostId: userId },
+      take: limit,
+      skip: skipAmount,
       include: { user: true, category: true },
     });
+    const count = await db.event.count({
+      where: { hostId: userId },
+    });
+    totalPages = Math.ceil(count / limit);
   } catch (error) {
     throw new Error("Internal server error");
   }
-  return events;
+  return {
+    data: events,
+    totalPages,
+  };
 }

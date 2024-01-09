@@ -66,7 +66,7 @@ export const getOrdersByUser = async ({
 }: {
   userId: string;
   page: number;
-  limit: number;
+  limit?: number;
 }) => {
   try {
     const skipAmount = (Number(page) - 1) * limit;
@@ -87,7 +87,7 @@ export const getOrdersByUser = async ({
     throw error;
   }
 };
-export const getOrdersByEvent = ({
+export const getOrdersByEvent = async ({
   eventId,
   searchString,
 }: {
@@ -95,5 +95,11 @@ export const getOrdersByEvent = ({
   searchString: string;
 }) => {
   try {
+    const orders = db.order.findMany({
+      where: { eventId },
+      include: { buyer: true, event: true },
+    });
+
+    return orders;
   } catch (error) {}
 };

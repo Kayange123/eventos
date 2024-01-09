@@ -1,3 +1,4 @@
+import { Event, Order, User } from "@prisma/client";
 import qs from "query-string";
 
 export type UrlQueryParams = {
@@ -109,6 +110,14 @@ export function removeKeysFromQuery({
 export const handleError = (error: unknown) => {
   console.error(error);
   throw new Error(typeof error === "string" ? error : JSON.stringify(error));
+};
+
+export type OrderWithUserAndEvent = Order & {
+  event: Event;
+  buyer: User;
+};
+export type OrderWithUser = Order & {
+  buyer: User;
 };
 
 export type CreateOrderParams = {
