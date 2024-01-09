@@ -132,7 +132,7 @@ const EventPage = async ({ params, searchParams }: SearchParamProps) => {
           page={1}
           data={relatedEvents?.data}
           limit={6}
-          emptyTitle="No Related Events for this Host"
+          emptyTitle="No Related Events for this Category"
           totalPages={2}
         />
       </section>
