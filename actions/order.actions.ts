@@ -39,8 +39,12 @@ export const checkoutOrder = async (order: CheckoutOrderParam) => {
       cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
     });
 
-    redirect(session?.url as string);
-  } catch (error) {}
+    const url = session?.url as string;
+
+    redirect(url);
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const createOrder = async (order: CreateOrderParams) => {
@@ -67,13 +71,21 @@ export const getOrdersByUser = async ({
   try {
     const skipAmount = (Number(page) - 1) * limit;
     const orders = await db.order.findMany({
-      where: { buyerId: userId, buyer: { id: userId } },
+      where: { buyerId: userId },
       orderBy: { createdAt: "desc" },
       skip: skipAmount,
       take: limit,
-      include: {},
+      include: { buyer: true, event: true },
     });
-  } catch (error) {}
+    const ordersCount = await db.order.count({ where: { buyerId: userId } });
+
+    return {
+      data: JSON.parse(JSON.stringify(orders)),
+      totalPages: Math.ceil(ordersCount / limit),
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 export const getOrdersByEvent = ({
   eventId,

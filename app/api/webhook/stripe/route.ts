@@ -1,5 +1,6 @@
 import stripe from "stripe";
 import { NextResponse } from "next/server";
+import { createOrder } from "@/actions/order.actions";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -23,11 +24,14 @@ export async function POST(req: Request) {
       eventId: metadata?.eventId ?? "",
       buyerId: metadata?.buyerId ?? "",
       totalAmount: amount_total ? (amount_total / 100).toString() : "0",
-      creatdAt: new Date(),
+      createdAt: new Date(),
     };
-
-    //const newOrder = await createOrder(order);
-    //return NextResponse.json({message: "Ok", order: newOrder})
+    try {
+      const newOrder = await createOrder(order);
+      return NextResponse.json({ message: "Ok", order: newOrder });
+    } catch (error) {
+      return NextResponse.json("Error", { status: 500 });
+    }
   }
   return new NextResponse("", { status: 200 });
 }
