@@ -240,3 +240,21 @@ export async function getRelatedEventsByCategory({
     throw new Error("Internal server error");
   }
 }
+export async function getEventsByUser({
+  userId,
+  page = 1,
+}: {
+  userId: string;
+  page: number | string;
+}) {
+  let events;
+  try {
+    events = await db.event.findMany({
+      where: { hostId: userId },
+      include: { user: true, category: true },
+    });
+  } catch (error) {
+    throw new Error("Internal server error");
+  }
+  return events;
+}

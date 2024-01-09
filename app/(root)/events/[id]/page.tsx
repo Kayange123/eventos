@@ -2,8 +2,10 @@ import {
   getEventWithUserById,
   getRelatedEventsByCategory,
 } from "@/actions/event.actions";
+import CheckoutButton from "@/components/shared/CheckoutButton";
 import Collection from "@/components/shared/Collection";
 import { SearchParamProps, formatDateTime } from "@/lib/types";
+import { auth } from "@clerk/nextjs";
 import { Category, Event, User } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +18,9 @@ type EventWithUser = Event & {
 
 const EventPage = async ({ params, searchParams }: SearchParamProps) => {
   if (!params.id) redirect("/");
+
+  const { sessionClaims } = auth();
+
   const event = (await getEventWithUserById(params.id)) as EventWithUser;
   const relatedEvents = await getRelatedEventsByCategory({
     categoryId: event.categoryId,
@@ -26,6 +31,8 @@ const EventPage = async ({ params, searchParams }: SearchParamProps) => {
   if (!event) {
     return redirect("/");
   }
+
+  const isCreator = (sessionClaims?.userId as string) === event?.user?.id;
   return (
     <>
       <section className="flex justify-center bg-primary-50 bg-dotted-pattern bg-contain">
@@ -57,6 +64,9 @@ const EventPage = async ({ params, searchParams }: SearchParamProps) => {
                 </p>
               </div>
             </div>
+
+            {/* Checkout Button */}
+            {<CheckoutButton event={event} />}
 
             <div className="flex flex-col gap-7">
               <div className="flex gap-2 md:gap-3">

@@ -6,12 +6,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default async function Home() {
-  const events = await getAllEvents({
-    query: "",
-    category: "",
-    page: 1,
-    limit: 6,
-  });
+  let events: any;
+  try {
+    events = await getAllEvents({
+      query: "",
+      category: "",
+      page: 1,
+      limit: 6,
+    });
+  } catch (error) {
+    events = [];
+  }
 
   return (
     <>
