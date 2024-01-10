@@ -75,10 +75,9 @@ export const getOrdersByUser = async ({
       orderBy: { createdAt: "desc" },
       skip: skipAmount,
       take: limit,
-      include: { buyer: true, event: true },
+      include: { event: { include: { user: true } } },
     });
     const ordersCount = await db.order.count({ where: { buyerId: userId } });
-
     return {
       data: JSON.parse(JSON.stringify(orders)),
       totalPages: Math.ceil(ordersCount / limit),

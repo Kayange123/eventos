@@ -10,15 +10,16 @@ import React from "react";
 const ProfilePage = async ({ searchParams }: SearchParamProps) => {
   const { sessionClaims } = auth();
   const userId = sessionClaims?.userId as string;
-
+  let orders, organizedEvents;
   const ordersPage = Number(searchParams?.ordersPage) || 1;
   const eventsPage = Number(searchParams?.eventsPage) || 1;
-  const orders = await getOrdersByUser({ userId, page: ordersPage });
-  const organizedEvents = await getEventsByUser({ userId, page: eventsPage });
+  try {
+    orders = await getOrdersByUser({ userId, page: ordersPage });
+    organizedEvents = await getEventsByUser({ userId, page: eventsPage });
+  } catch (error) {}
 
   const orderedEvents =
     orders?.data?.map((order: OrderWithUserAndEvent) => order?.event) || [];
-
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
@@ -54,7 +55,7 @@ const ProfilePage = async ({ searchParams }: SearchParamProps) => {
 
       <section className="wrapper my-8">
         <Collection
-          data={organizedEvents?.data}
+          data={organizedEvents?.data!}
           emptyTitle="No events have been recorded"
           emptyStateSubtext="Create yours today"
           collectionType="Events_Organized"
