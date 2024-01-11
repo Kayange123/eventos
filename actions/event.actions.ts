@@ -265,7 +265,7 @@ export async function getEventsByUser({
     });
     totalPages = Math.ceil(count / limit);
   } catch (error) {
-    throw new Error("Internal server error");
+    throw error;
   }
   return {
     data: events,
