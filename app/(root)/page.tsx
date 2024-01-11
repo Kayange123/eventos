@@ -1,18 +1,23 @@
 import { getAllEvents } from "@/actions/event.actions";
+import CategoryFilter from "@/components/shared/CategoryFilter";
 import Collection from "@/components/shared/Collection";
 import Search from "@/components/shared/Search";
 import { Button } from "@/components/ui/button";
+import { SearchParamProps } from "@/lib/types";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function Home() {
+export default async function Home({ searchParams }: SearchParamProps) {
+  const page = Number(searchParams?.page) || 1;
+  const query = (searchParams?.query as string) || "";
+  const category = (searchParams?.category as string) || "";
   let events: any;
   try {
     events = await getAllEvents({
-      query: "",
-      category: "",
-      page: 1,
+      query,
+      category,
+      page: page,
       limit: 6,
     });
   } catch (error) {
@@ -53,17 +58,17 @@ export default async function Home() {
       >
         <h2 className="h2-bold">Meet thousands of users and events</h2>
         <div className="flex w-full flex-col gap-5 md:flex-row">
-          <Search />
-          CategoryFilter
+          <Search placeholder="Search here..." />
+          <CategoryFilter />
         </div>
         <Collection
           data={events?.data}
           emptyTitle="No events Found"
-          emptyStateSubtext="Try again later"
+          emptyStateSubtext="Visit again later"
           collectionType="All_Events"
           limit={6}
-          page={1}
-          totalPages={2}
+          page={page}
+          totalPages={events?.totalPages}
         />
       </section>
     </>

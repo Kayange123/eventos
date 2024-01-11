@@ -1,12 +1,13 @@
 import { Category, Event, User } from "@prisma/client";
 import Card from "./Card";
+import Pageable from "./Pageable";
 
 export type EventWithCatUser = Event & {
   category: Category;
   user: User;
 };
 
-interface CollectionProps {
+export interface CollectionProps {
   data: EventWithCatUser[];
   emptyTitle: string;
   emptyStateSubtext: string;
@@ -22,9 +23,10 @@ const Collection = ({
   emptyStateSubtext,
   emptyTitle,
   collectionType,
+  urlParamName,
   limit,
   page,
-  totalPages,
+  totalPages = 0,
 }: CollectionProps) => {
   return (
     <>
@@ -46,6 +48,13 @@ const Collection = ({
               );
             })}
           </ul>
+          {totalPages > 1 && (
+            <Pageable
+              urlParamName={urlParamName}
+              page={page}
+              totalPages={totalPages}
+            />
+          )}
         </div>
       ) : (
         <div className="flex-center wrapper w-full flex-col gap-3 rounded-[14px] bg-grey-50 min-h-[200px] py-28 text-center text-muted-foreground">
