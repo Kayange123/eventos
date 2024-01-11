@@ -129,11 +129,11 @@ const EventPage = async ({ params, searchParams }: SearchParamProps) => {
         <Collection
           collectionType="Events_Organized"
           emptyStateSubtext="Check Again Later"
-          page={1}
+          page={searchParams?.page as string}
           data={relatedEvents?.data}
-          limit={6}
+          limit={3}
           emptyTitle="No Related Events for this Category"
-          totalPages={2}
+          totalPages={relatedEvents?.totalPages}
         />
       </section>
     </>
