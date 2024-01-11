@@ -57,7 +57,7 @@ const Card = ({ event, hasOrderLink, hidePrice }: CardProps) => {
             <span className="text-muted-foreground">{"Host | "}</span>
             {event?.user?.firstName} {event?.user?.lastName}
           </p>
-          {hasOrderLink && (
+          {hasOrderLink && isCreator && (
             <Link
               href={`/orders?eventId=${event?.id}`}
               className="flex gap-2 text-sm"
